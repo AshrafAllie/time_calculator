@@ -23,12 +23,12 @@
           the Free Software Foundation, either version 3 of the License, or (at
           your option) any later version.
 
-          This program is distributed in the hope that it will be useful, but 
-          WITHOUT ANY WARRANTY; without even the implied warranty of 
-          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+          This program is distributed in the hope that it will be useful, but
+          WITHOUT ANY WARRANTY; without even the implied warranty of
+          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
           General Public License for more details.
 
-          You should have received a copy of the GNU General Public License 
+          You should have received a copy of the GNU General Public License
           along with this program. If not, see <http://www.gnu.org/licenses/>
 */
 
@@ -44,9 +44,10 @@
 //---------------------
 //Function Declarations (prototypes)
 //---------------------
+unsigned char GetLength(unsigned char* argument);
 void message(unsigned char message_num);
 unsigned char time_form_range_checker(unsigned char* start, unsigned char* end);
-unsigned char* get_time(unsigned char* start, unsigned char* end);
+void get_time(unsigned char* option, unsigned char* start, unsigned char* end);
 
 
 //------------
@@ -60,11 +61,28 @@ int main(int argc, char* argv[])
       message(0);
       break;
   case 3:
-      if (time_form_range_checker(argv[1], argv[2]))
-        get_time(argv[1], argv[2]);
+      if (time_form_range_checker((unsigned char*) argv[1], (unsigned char*) argv[2]))
+        get_time((unsigned char*) "default", (unsigned char*) argv[1], (unsigned char*) argv[2]);
 
       break;
   case 4:
+      //Check switch argument
+      if (!(argv[1][0] == '-' &&
+            (argv[1][1] == 'h' ||
+             argv[1][1] == 'm' ||
+             argv[1][1] == 's'
+            )
+           )
+         )
+      {
+       message(9);
+       return 0;
+      }
+
+      // Check the start and end argument
+      if (time_form_range_checker((unsigned char*) argv[2], (unsigned char*) argv[3]))
+        get_time((unsigned char*) argv[1], (unsigned char*) argv[2], (unsigned char*) argv[3]);
+
       break;
   default:
       message(1);
@@ -81,13 +99,28 @@ int main(int argc, char* argv[])
 //--------------------
 
 
+//FUNCTION: GetLength()
+unsigned char GetLength(unsigned char* argument)
+{
+ unsigned char size = 0;
+
+ while (*argument != '\0')
+ {
+  size++;
+  argument++;
+ }
+
+ return size;
+}
+
+
 //FUNCTION: message
 void message(unsigned char message_num)
 {
  unsigned char* error_messages[] =
  {
   //message 0
-  "time calculator copyleft (c) 2014 Ashraf\n\n"
+  (unsigned char*) "time calculator copyleft (c) 2014 Ashraf\n\n"
   "Usage: time_calc [option] <start time> <end time>\n"
   "Options:\n"
   "-h returns time in hours\n"
@@ -98,34 +131,37 @@ void message(unsigned char message_num)
   "start time and end time must be in the form dd:dd:dd\n",
 
   //message 1
-  "Error: argument count cannot be 2 nor exceed 4\n",
+  (unsigned char*) "Error: argument count cannot be 2 nor exceed 4\n",
 
   //message 2
-  "Error: length of start time and end time must be 8 characters and in the form dd:dd:dd\n",
+  (unsigned char*) "Error: length of start time and end time must be 8 characters and in the form dd:dd:dd\n",
 
   //message 3
-  "Error: start or end time's hour's tens column not in range 0 to 2\n"
+  (unsigned char*) "Error: start or end time's hour's tens column not in range 0 to 2\n"
   "start hour tens column must be <= end hour tens column\n",
 
   //message 4
-  "Error: start hour must be less than or equal to end hour and in range 00 to 23\n",
+  (unsigned char*) "Error: start hour must be less than or equal to end hour and in range 00 to 23\n",
 
   //message 5
-  "Error: minutes tens column must be in the range 0 to 5\n"
+  (unsigned char*) "Error: minutes tens column must be in the range 0 to 5\n"
   "and when hours are the same start minutes <= end minutes\n",
 
   //message 6
-  "Error: start minutes must be less than end minutes when hours are the same\n",
+  (unsigned char*) "Error: start minutes must be less than end minutes when hours are the same\n",
 
   //message 7
-  "Error: seconds tens column must be in the range 0 to 5\n"
+  (unsigned char*) "Error: seconds tens column must be in the range 0 to 5\n"
   "and when hours and minutes are the same start seconds <= end seconds\n",
 
   //message 8
-  "Error: start seconds must be less than end seconds when hours and minutes are the same\n"
+  (unsigned char*) "Error: start seconds must be less than end seconds when hours and minutes are the same\n",
+
+  //message 9
+  (unsigned char*) "Error: option switch must be -h or -m or -s\n"
  };
 
- printf("%s", error_messages[message_num]);
+ printf("%s", (unsigned char*) error_messages[message_num]);
 }
 
 //FUNCTION: time_form_range_checker
@@ -133,17 +169,17 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
 {
  unsigned char i;
 
- if (strlen(start) != 8 && strlen(end) != 8)
+ if ((GetLength(start) != 8) && (GetLength(end) != 8))
  {
   message(2);
   return 0;
  }
- 
- for (i = 0; i < strlen(start); i++)
+
+ for (i = 0; i < GetLength(start); i++)
  {
-  if (i == 2 || i == 5)
+  if ((i == 2) || (i == 5))
   {
-   if (start[i] != ':' && end[i] != ':')
+   if ((start[i] != ':') && (end[i] != ':'))
    {
     message(2);
     return 0;
@@ -151,15 +187,19 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
   }
   else
   {
-   if (!isdigit(start[i]) && !isdigit(end[i]))
+   if ((!isdigit(start[i])) && (!isdigit(end[i])))
    {
     message(2);
     return 0;
    }
 
+
    switch (i)
    {
+
+
     case 0:
+
         //hours tens column
         if (!((start[i] >= '0') && (start[i] <= '2') &&
               (end[i]   >= '0') && (end[i]   <= '2') &&
@@ -177,12 +217,11 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
     case 1:
         //hours unit column
         if (
-            ((start[0] == '2') && !(start[i] <= '3') ||
-             (end[0]   == '2') && !(end[i]   <= '3')
+            (((start[0] == '2') && !(start[i] <= '3')) ||
+             ((end[0]   == '2') && !(end[i]   <= '3'))
             ) ||
 
-            ((start[0] == end[0]) && !(start[i] <= end[i]))
-
+            ((start[0] == end[0]) && (!(start[i] <= end[i])))
            )
         {
          message(4);
@@ -272,7 +311,7 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
 
 
 //FUNCTION: get_time()
-unsigned char* get_time(unsigned char* start, unsigned char* end)
+void get_time(unsigned char* option, unsigned char* start, unsigned char* end)
 {
  unsigned char start_sec, start_min, start_hour,
                end_sec,   end_min,   end_hour,
@@ -286,17 +325,6 @@ unsigned char* get_time(unsigned char* start, unsigned char* end)
  start_min  = start[4] - '0' + ((start[3] - '0') * 10);
  start_hour = start[1] - '0' + ((start[0] - '0') * 10);
 
-/*
- printf("get_time:\n"
-        "start_sec:  %2d\n"
-        "start_min:  %2d\n"
-        "start_hour: %2d\n\n"
-        "end_sec:  %2d\n"
-        "end_min:  %2d\n"
-        "end_hour: %2d\n",
-        start_sec, start_min, start_hour,
-        end_sec, end_min, end_hour);
-*/
 
  if (end_sec < start_sec)
  {
@@ -327,5 +355,19 @@ unsigned char* get_time(unsigned char* start, unsigned char* end)
  hour = end_hour - start_hour;
 
 
- printf("%02d:%02d:%02d\n", hour, min, sec);
+ //Print time in default form dd:dd:dd
+ if (strcmp((char*) option, "default") == 0)
+   printf("%02d:%02d:%02d\n", hour, min, sec);
+
+ //print time in hours
+ else if (strcmp((char*) option, "-h") == 0)
+        printf("%f hours\n", (float)hour+((float)min/60.0)+((float)sec/3600.0));
+
+ //print time in minutes
+ else if (strcmp((char*) option, "-m") == 0)
+        printf("%f minutes\n", hour*60 + min + ((float)sec/60.0));
+
+ //print time in seconds
+ else if (strcmp((char*) option, "-s") == 0)
+        printf("%d seconds\n", hour*3600 + min*60 + sec);
 }
