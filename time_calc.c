@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
       break;
   case 4:
       //Check switch argument
-      if (!(argv[1][0] == '-' &&
+      if (!( argv[1][0] == '-' &&
             (argv[1][1] == 'h' ||
              argv[1][1] == 'm' ||
              argv[1][1] == 's'
@@ -84,6 +84,7 @@ int main(int argc, char* argv[])
         get_time((unsigned char*) argv[1], (unsigned char*) argv[2], (unsigned char*) argv[3]);
 
       break;
+
   default:
       message(1);
       break;
@@ -164,12 +165,13 @@ void message(unsigned char message_num)
  printf("%s", (unsigned char*) error_messages[message_num]);
 }
 
+
 //FUNCTION: time_form_range_checker
 unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
 {
  unsigned char i;
 
- if ((GetLength(start) != 8) && (GetLength(end) != 8))
+ if (!((GetLength(start) == 8) && (GetLength(end) == 8)))
  {
   message(2);
   return 0;
@@ -238,7 +240,7 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
               (end[i]   >= '0' && end[i]   <= '5')
              ) ||
 
-            ((start[0] == end[0]) && (start[1] == end[1]) &&
+            ( (start[0] == end[0]) && (start[1] == end[1]) &&
              !(start[i] <= end[i])
             )
            )
@@ -253,8 +255,8 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
     case 4:
         //minutes unit column
         if (
-            ((start[0] == end[0]) && (start[1] == end[1]) &&
-             (start[3] == end[3]) &&
+            ( (start[0] == end[0]) && (start[1] == end[1]) &&
+              (start[3] == end[3]) &&
              !(start[i] <= end[i])
             )
            )
@@ -274,9 +276,9 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
              ) ||
 
             (
-             (start[0] == end[0]) && (start[1] == end[1]) &&
-             (start[3] == end[3]) && (start[4] == end[4]) &&
-             !(start[6] <= end[i])
+              (start[0] == end[0]) && (start[1] == end[1]) &&
+              (start[3] == end[3]) && (start[4] == end[4]) &&
+             !(start[i] <= end[i])
             )
            )
         {
@@ -290,8 +292,9 @@ unsigned char time_form_range_checker(unsigned char* start, unsigned char* end)
     case 7:
         //seconds unit column
         if (
-            ((start[0] == end[0]) && (start[1] == end[1]) &&
-             (start[3] == end[3]) && (start[4] == end[4]) &&
+            ( (start[0] == end[0]) && (start[1] == end[1]) &&
+              (start[3] == end[3]) && (start[4] == end[4]) &&
+              (start[6] == end[6]) &&
              !(start[i] <= end[i])
             )
            )
@@ -333,7 +336,14 @@ void get_time(unsigned char* option, unsigned char* start, unsigned char* end)
    end_min--;
    sec = 60 + end_sec - start_sec;
   }
-  else printf("to be done borow from end_hour\n");
+  else
+  {
+   end_hour--;
+   end_min += 59; // end seconds borrowed 1 min
+   end_sec += 60;
+
+   sec = end_sec - start_sec;
+  }
  }
  else
      sec = end_sec - start_sec;
